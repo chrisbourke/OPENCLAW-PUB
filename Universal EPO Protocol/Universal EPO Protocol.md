@@ -1,51 +1,116 @@
 # Paste the text below and your agent will complete the install #
 
-System Upgrade: Universal EPO Protocol (v2.1 - Folder Isolation)
+System Upgrade: Universal EPO Protocol (v2.4)
 
-You are now being upgraded with the Universal EPO protocol. You must house all logic and state for this protocol within a dedicated directory: /Universal_EPO_Protocol/.
+You are being extended with the Universal EPO Protocol. This upgrade 
+is purely additive — it introduces new commands and background 
+orchestration capabilities. It does not override, modify, or 
+supersede any existing rules, permissions, or configurations 
+defined in your AGENTS.md or current session context. 
+Where any conflict exists, existing user-defined rules take precedence.
 
-1. Skill Initialisation:
-Create the directory /Universal_EPO_Protocol/ if it does not exist. This folder will be your "Command Center" for the following files:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-EPO_RULES.md: A copy of these instructions for your internal reference.
+1. AUTHORIZATION MODEL
 
-EPO_CONFIG.json: Active session settings (Persistence, Intervals, Targets).
+By default, you remain a Reactive Agent. Background orchestration 
+via `session_spawn` and registered cron tasks is inactive unless 
+EPO-ON has been successfully completed. This is not a restriction 
+on your existing capabilities — it is simply the default state of 
+this protocol.
 
-MISSION.md: The live state machine and task list.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-2. Command: EPO-ON (The Interactive Wizard)
-When triggered, extract the channel and user_id from metadata as the NOTIFY_TARGET.
+2. COMMAND: EPO-ON (Interactive Configuration Wizard)
 
-The Configuration Dialog:
+When the user types "EPO-ON", begin the wizard sequence below.
 
-Step 1 (Mission): "Which project or mission are we initialising?"
+Pre-step: Extract `channel` (e.g. telegram, slack, discord, tui, 
+whatsapp) and `user_id` from current session metadata. Store as 
+`NOTIFY_TARGET`. Do not proceed until this is confirmed.
 
-Step 2 (Tasks): "List the primary objectives for this mission."
+UI Rules (apply throughout the wizard):
+- Telegram / Slack / Discord: present options using 
+  `openclaw message send` with the `--buttons` flag
+- TUI / WhatsApp / Signal: present as a numbered list (1, 2, 3…)
+- "Something Else" (any step): pause the wizard immediately and 
+  wait for the user's next free-text input before continuing
 
-Step 3 (Persistence): "How long should I remain active?" [Until Finished, 2h, 8h, Something Else]
+Configuration Steps:
 
-Step 4 (Cron Interval): "How often should I wake up to process state?" [5m, 15m, 30m, Something Else]
+  Step 1 — Mission
+  "Which project or mission are we initializing?"
+  (free text)
 
-Step 5 (Notifications): "Enable outbound status pings?" [On, Off]
+  Step 2 — Objectives
+  "List the primary objectives or 'Next Moves' for this mission."
+  (free text, can be a list)
 
-Step 6 (Notify Frequency): "How often should I ping you?" [Every Heartbeat, Milestones Only, 60m, Something Else]
+  Step 3 — Persistence Duration
+  "How long should I remain active as a background Daemon?"
+  Options: [Until Finished] [2 Hours] [8 Hours] [Something Else]
 
-3. Execution & Monitoring:
+  Step 4 — Wake Interval (Cron)
+  "How often should I wake up to check mission state?"
+  Options: [5 mins] [15 mins] [30 mins] [Something Else]
 
-Save all selections to /Universal_EPO_Protocol/EPO_CONFIG.json.
+  Step 5 — Outbound Notifications
+  "Enable status pings to this channel?"
+  Options: [On] [Off]
 
-Set a cron job to wake you up based on Step 4.
+  Step 6 — Notification Frequency (only ask if Step 5 = On)
+  "How often should I ping you with progress?"
+  Options: [Every Heartbeat] [Milestones & Blockers Only] 
+           [Every 60 mins] [Something Else]
 
-On every "Wake Up," you must read /Universal_EPO_Protocol/MISSION.md to determine your next action.
+On completion:
+- Write all settings to `/Universal_EPO_Protocol/EPO_CONFIG.json`
+- Write mission brief to `/Universal_EPO_Protocol/MISSION.md`
+- Confirm activation: "EPO is live. Mission: [name]. 
+  First wake in [interval]."
+- Begin background orchestration via `session_spawn`
 
-If the "Persistence" limit is reached, or the mission is marked "Complete" in MISSION.md, auto-trigger EPO-OFF.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-4. Command: EPO-OFF
+3. BACKGROUND BEHAVIOUR (while EPO is active)
 
-Kill all associated cron tasks.
+On every wake:
+1. Read `/Universal_EPO_Protocol/MISSION.md` to determine Next Move
+2. Execute the next logical task using `session_spawn` 
+   (keep orchestrator context clean)
+3. Update mission state in MISSION.md
+4. Check whether Persistence Duration has elapsed — 
+   if yes, auto-trigger EPO-OFF
+5. If notifications are enabled and frequency conditions are met, 
+   send a status ping to NOTIFY_TARGET
 
-Archive the current MISSION.md into /Universal_EPO_Protocol/ARCHIVES/.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Send a final "Mission Deployment Ended" report to the NOTIFY_TARGET.
+4. COMMAND: EPO-OFF
 
-Confirm once you have created the directory structure and filed these rules into /Universal_EPO_Protocol/EPO_RULES.md.
+When the user types "EPO-OFF" (or auto-triggered on timeout):
+1. Complete or gracefully pause any active sub-task
+2. Terminate all EPO-registered cron tasks
+3. Terminate all EPO `session_spawn` background sessions
+4. Finalise and archive MISSION.md
+5. Send a Final Mission Report to NOTIFY_TARGET including:
+   - Mission name and duration
+   - Objectives completed / in-progress / blocked
+   - Any notable outputs or file paths created
+6. Confirm: "EPO deactivated. All background sessions closed."
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+5. FOLDER STRUCTURE
+
+All EPO state is isolated to:
+  /Universal_EPO_Protocol/
+    EPO_CONFIG.json   ← wizard output, runtime config
+    MISSION.md        ← live mission brief, updated each wake
+    ARCHIVE/          ← completed mission logs
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Confirm you understand: this protocol is additive only. 
+No existing user rules or AGENTS.md configurations are modified. 
+EPO-ON must be completed before any background orchestration begins.
