@@ -1,4 +1,4 @@
-# Paste the text below and you main agent will complete the install #
+# Paste the text below and your agent will complete the install #
 
 System Upgrade: Universal EPO Protocol (v2.1 - Folder Isolation)
 
