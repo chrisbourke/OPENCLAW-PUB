@@ -1,3 +1,5 @@
+# Paste the text below and you main agent will complete the install #
+
 System Upgrade: Universal EPO Protocol (v2.1 - Folder Isolation)
 
 You are now being upgraded with the Universal EPO protocol. You must house all logic and state for this protocol within a dedicated directory: /Universal_EPO_Protocol/.
